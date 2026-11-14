@@ -1,0 +1,103 @@
+
+.schedule-page {
+  min-height: 100vh;
+  padding: 28px;
+  background: #f7f8f2;
+  color: #34483d;
+  font-family: inherit;
+}
+
+.schedule-page h1,
+.schedule-page h2,
+.schedule-page h3 {
+  color: #34483d;
+}
+
+.schedule-page .bg-white {
+  background: #ffffff;
+  border: 1px solid #e5eae2;
+  border-radius: 16px;
+  box-shadow: 0 4px 18px rgba(49, 75, 57, 0.05);
+}
+
+.schedule-page input,
+.schedule-page select,
+.schedule-page textarea {
+  width: 100%;
+  padding: 11px 13px;
+  border: 1px solid #dce5dc;
+  border-radius: 10px;
+  background: #fff;
+  color: #34483d;
+  outline: none;
+}
+
+.schedule-page input:focus,
+.schedule-page select:focus,
+.schedule-page textarea:focus {
+  border-color: #8ba994;
+  box-shadow: 0 0 0 3px rgba(139, 169, 148, 0.15);
+}
+
+.schedule-page button {
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.schedule-page button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.schedule-page button.bg-green-600,
+.schedule-page button.bg-green-700 {
+  background: #668b70;
+  color: white;
+  border-radius: 10px;
+}
+
+.schedule-page button.bg-green-600:hover,
+.schedule-page button.bg-green-700:hover {
+  background: #52745b;
+}
+
+.schedule-page button.bg-red-600 {
+  background: #c66f68;
+  color: white;
+  border-radius: 10px;
+}
+
+.schedule-page button.bg-red-600:hover {
+  background: #ad5c56;
+}
+
+.schedule-page .text-gray-500,
+.schedule-page .text-gray-600 {
+  color: #78857a;
+}
+
+.schedule-page .border {
+  border-color: #e3e9e1;
+}
+
+.schedule-page .bg-gray-50 {
+  background: #f4f6f0;
+}
+
+.schedule-page .bg-red-50 {
+  background: #fff3f0;
+}
+
+.schedule-page .text-red-600 {
+  color: #b85d56;
+}
+
+.schedule-page .text-green-600 {
+  color: #5d8566;
+}
+
+@media (max-width: 640px) {
+  .schedule-page {
+    padding: 16px;
+  }
+}

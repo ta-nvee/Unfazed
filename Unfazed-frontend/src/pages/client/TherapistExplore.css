@@ -1,0 +1,760 @@
+
+/* =====================================================
+   UNFAZED — THERAPIST EXPLORE
+   Full, balanced, cozy sage-green design
+===================================================== */
+
+.therapist-explore-page {
+  --sage: #52745f;
+  --sage-dark: #405e4b;
+  --sage-light: #edf3eb;
+  --sage-muted: #829d84;
+  --cream: #f8f7f2;
+  --white: #fffefa;
+  --text: #303c33;
+  --muted: #788078;
+  --border: #e0e9df;
+  --terracotta: #c17b60;
+
+  min-height: 100vh;
+  width: 100%;
+  overflow-x: hidden;
+  background: var(--cream);
+  color: var(--text);
+  font-family: inherit;
+}
+
+.therapist-explore-page *,
+.therapist-explore-page *::before,
+.therapist-explore-page *::after {
+  box-sizing: border-box;
+}
+
+/* =====================================================
+   NAVBAR
+===================================================== */
+
+.therapist-explore-page .explore-navbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  width: 100%;
+  height: 76px;
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+}
+
+.therapist-explore-page .explore-nav-inner {
+  width: min(100% - 80px, 1440px);
+  height: 100%;
+  margin: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.therapist-explore-page .explore-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 11px;
+  border: none;
+  background: transparent;
+  color: var(--sage);
+  font-size: 27px;
+  font-weight: 800;
+  letter-spacing: -1.2px;
+  cursor: pointer;
+}
+
+.therapist-explore-page .brand-icon {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 13px;
+  background: var(--sage-light);
+}
+
+.therapist-explore-page .explore-back-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 11px 19px;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  background: var(--white);
+  color: var(--sage-dark);
+  font-size: 13px;
+  font-weight: 650;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.therapist-explore-page .explore-back-button:hover {
+  background: var(--sage-light);
+  border-color: var(--sage-muted);
+}
+
+/* =====================================================
+   MAIN LAYOUT
+===================================================== */
+
+.therapist-explore-page .explore-main {
+  width: min(100% - 80px, 1440px);
+  margin: 0 auto;
+  padding: 55px 0 90px;
+}
+
+/* =====================================================
+   HERO
+===================================================== */
+
+.therapist-explore-page .explore-hero {
+  max-width: 100%;
+  margin: 0 auto 38px;
+  padding: 46px 35px;
+  border: 1px solid #e5ebe1;
+  border-radius: 25px;
+  background:
+    radial-gradient(circle at 90% 10%, rgba(130, 157, 132, 0.13), transparent 30%),
+    linear-gradient(120deg, #f0f4ec 0%, #f8f7f2 55%, #f1f4ed 100%);
+  text-align: center;
+}
+
+.therapist-explore-page .explore-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 17px;
+  color: var(--sage);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.therapist-explore-page .explore-hero h1 {
+  max-width: 850px;
+  margin: 0 auto 17px;
+  color: var(--text);
+  font-size: clamp(38px, 4.2vw, 57px);
+  line-height: 1.12;
+  font-weight: 800;
+  letter-spacing: -2px;
+}
+
+.therapist-explore-page .explore-hero p {
+  max-width: 720px;
+  margin: 0 auto;
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+.therapist-explore-page .explore-hero-note {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 22px;
+  padding: 10px 17px;
+  border: 1px solid #dce6d9;
+  border-radius: 30px;
+  background: rgba(255, 254, 250, 0.8);
+  color: var(--sage-dark);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+/* =====================================================
+   SEARCH
+===================================================== */
+
+.therapist-explore-page .explore-search {
+  width: min(100%, 850px);
+  min-height: 64px;
+  margin: 0 auto 25px;
+  padding: 0 21px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--white);
+  box-shadow: 0 5px 20px rgba(48, 60, 51, 0.045);
+  transition: all 0.2s ease;
+}
+
+.therapist-explore-page .explore-search:focus-within {
+  border-color: var(--sage);
+  box-shadow: 0 0 0 4px rgba(82, 116, 95, 0.09);
+}
+
+.therapist-explore-page .explore-search svg {
+  flex-shrink: 0;
+  color: var(--sage);
+}
+
+.therapist-explore-page .explore-search input {
+  width: 100%;
+  height: 60px;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 15px;
+}
+
+.therapist-explore-page .explore-search input::placeholder {
+  color: #a0a89f;
+}
+
+.therapist-explore-page .explore-clear-search {
+  flex-shrink: 0;
+  padding: 8px 13px;
+  border: none;
+  border-radius: 8px;
+  background: var(--sage-light);
+  color: var(--sage-dark);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* =====================================================
+   FILTERS
+===================================================== */
+
+.therapist-explore-page .specialization-filters {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 11px;
+  margin: 0 auto 48px;
+}
+
+.therapist-explore-page .specialization-filters button {
+  min-height: 41px;
+  padding: 10px 19px;
+  border: 1px solid var(--border);
+  border-radius: 30px;
+  background: var(--white);
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 650;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.therapist-explore-page .specialization-filters button:hover {
+  border-color: var(--sage-muted);
+  background: var(--sage-light);
+  color: var(--sage-dark);
+}
+
+.therapist-explore-page .specialization-filters button.active,
+.therapist-explore-page .specialization-filters button.selected {
+  border-color: var(--sage);
+  background: var(--sage);
+  color: white;
+}
+
+/* =====================================================
+   RESULTS HEADING
+===================================================== */
+
+.therapist-explore-page .explore-results {
+  width: 100%;
+}
+
+.therapist-explore-page .explore-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 26px;
+}
+
+.therapist-explore-page .explore-section-heading h2 {
+  margin: 0;
+  color: var(--text);
+  font-size: 27px;
+  font-weight: 800;
+  letter-spacing: -0.8px;
+}
+
+.therapist-explore-page .explore-subheading {
+  margin: 7px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.therapist-explore-page .explore-count {
+  flex-shrink: 0;
+  padding: 9px 16px;
+  border-radius: 30px;
+  background: var(--sage-light);
+  color: var(--sage-dark);
+  font-size: 12px;
+  font-weight: 750;
+}
+
+/* =====================================================
+   THERAPIST GRID
+===================================================== */
+
+.therapist-explore-page .therapist-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 25px;
+}
+
+/* =====================================================
+   THERAPIST CARD
+===================================================== */
+
+.therapist-explore-page .therapist-card {
+  min-width: 0;
+  min-height: 405px;
+  padding: 27px;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  border-radius: 19px;
+  background: var(--white);
+  box-shadow: 0 5px 22px rgba(48, 60, 51, 0.035);
+  transition: transform 0.25s ease, box-shadow 0.25s ease,
+    border-color 0.25s ease;
+}
+
+.therapist-explore-page .therapist-card:hover {
+  transform: translateY(-5px);
+  border-color: #c7d8c8;
+  box-shadow: 0 15px 35px rgba(48, 60, 51, 0.09);
+}
+
+.therapist-explore-page .therapist-card-top {
+  display: flex;
+  align-items: center;
+  gap: 17px;
+  margin-bottom: 19px;
+}
+
+.therapist-explore-page .therapist-avatar {
+  width: 85px;
+  height: 85px;
+  min-width: 85px;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: 17px;
+  background: var(--sage-light);
+  color: var(--sage);
+}
+
+.therapist-explore-page .therapist-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.therapist-explore-page .therapist-card-top h3 {
+  margin: 0 0 7px;
+  color: var(--text);
+  font-size: 19px;
+  line-height: 1.35;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.therapist-explore-page .therapist-card-top p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* =====================================================
+   AVAILABILITY
+===================================================== */
+
+.therapist-explore-page .therapist-available {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 15px;
+  color: var(--sage-dark);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.therapist-explore-page .availability-dot {
+  width: 8px;
+  height: 8px;
+  display: inline-block;
+  border-radius: 50%;
+  background: #70a77a;
+  box-shadow: 0 0 0 3px rgba(112, 167, 122, 0.12);
+}
+
+/* =====================================================
+   BIO
+===================================================== */
+
+.therapist-explore-page .therapist-bio {
+  min-height: 76px;
+  margin: 0 0 18px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+}
+
+/* =====================================================
+   DETAILS
+===================================================== */
+
+.therapist-explore-page .therapist-details {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 17px 0;
+  margin-bottom: 17px;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.therapist-explore-page .therapist-details span {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.therapist-explore-page .therapist-details svg {
+  flex-shrink: 0;
+  color: var(--sage);
+}
+
+/* =====================================================
+   TAGS
+===================================================== */
+
+.therapist-explore-page .therapist-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 22px;
+}
+
+.therapist-explore-page .therapist-tags span {
+  max-width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 30px;
+  background: var(--sage-light);
+  color: var(--sage-dark);
+  font-size: 11px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+/* =====================================================
+   BUTTON
+===================================================== */
+
+.therapist-explore-page .therapist-select-button {
+  width: 100%;
+  min-height: 51px;
+  margin-top: auto;
+  padding: 13px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  border: none;
+  border-radius: 11px;
+  background: var(--sage);
+  color: white;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 750;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.therapist-explore-page .therapist-select-button:hover {
+  background: var(--sage-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 7px 17px rgba(82, 116, 95, 0.18);
+}
+
+.therapist-explore-page .therapist-select-button:active {
+  transform: translateY(0);
+}
+
+/* =====================================================
+   LOADING
+===================================================== */
+
+.therapist-explore-page .profile-loading,
+.therapist-explore-page .explore-loading {
+  min-height: 55vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+  color: var(--sage);
+}
+
+.therapist-explore-page .explore-spinner {
+  animation: explore-spin 1s linear infinite;
+}
+
+@keyframes explore-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* =====================================================
+   MESSAGES AND ERRORS
+===================================================== */
+
+.therapist-explore-page .explore-message {
+  max-width: 600px;
+  margin: 45px auto;
+  padding: 40px 30px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--white);
+  text-align: center;
+}
+
+.therapist-explore-page .explore-error {
+  border-color: #f0d2c9;
+  background: #fff7f3;
+  color: #a34e3a;
+}
+
+.therapist-explore-page .explore-message p {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+/* =====================================================
+   EMPTY STATE
+===================================================== */
+
+.therapist-explore-page .explore-empty {
+  grid-column: 1 / -1;
+  padding: 65px 25px;
+  border: 1px dashed #cbd9ca;
+  border-radius: 19px;
+  background: var(--white);
+  text-align: center;
+}
+
+.therapist-explore-page .explore-empty-icon {
+  width: 70px;
+  height: 70px;
+  margin: 0 auto 18px;
+  display: grid;
+  place-items: center;
+  border-radius: 21px;
+  background: var(--sage-light);
+  color: var(--sage);
+}
+
+.therapist-explore-page .explore-empty h3 {
+  margin: 0 0 10px;
+  color: var(--text);
+  font-size: 21px;
+}
+
+.therapist-explore-page .explore-empty p {
+  max-width: 450px;
+  margin: 0 auto;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+/* =====================================================
+   FOOTER
+===================================================== */
+
+.therapist-explore-page .explore-footer {
+  width: 100%;
+  padding: 27px 20px;
+  border-top: 1px solid var(--border);
+  background: var(--white);
+  text-align: center;
+}
+
+.therapist-explore-page .explore-footer p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: 0.2px;
+}
+
+/* =====================================================
+   TABLET
+===================================================== */
+
+@media (max-width: 1050px) {
+  .therapist-explore-page .explore-main,
+  .therapist-explore-page .explore-nav-inner {
+    width: calc(100% - 48px);
+  }
+
+  .therapist-explore-page .therapist-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+  }
+
+  .therapist-explore-page .therapist-card {
+    padding: 23px;
+  }
+}
+
+/* =====================================================
+   MOBILE
+===================================================== */
+
+@media (max-width: 650px) {
+  .therapist-explore-page .explore-navbar {
+    height: 66px;
+  }
+
+  .therapist-explore-page .explore-main,
+  .therapist-explore-page .explore-nav-inner {
+    width: calc(100% - 32px);
+  }
+
+  .therapist-explore-page .explore-main {
+    padding: 28px 0 55px;
+  }
+
+  .therapist-explore-page .explore-brand {
+    font-size: 22px;
+  }
+
+  .therapist-explore-page .brand-icon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .therapist-explore-page .explore-back-button {
+    padding: 9px 12px;
+    font-size: 11px;
+  }
+
+  .therapist-explore-page .explore-hero {
+    padding: 34px 19px;
+    margin-bottom: 25px;
+    border-radius: 19px;
+  }
+
+  .therapist-explore-page .explore-hero h1 {
+    font-size: 35px;
+    letter-spacing: -1.4px;
+  }
+
+  .therapist-explore-page .explore-hero p {
+    font-size: 13px;
+  }
+
+  .therapist-explore-page .explore-search {
+    min-height: 55px;
+    padding: 0 14px;
+    margin-bottom: 20px;
+  }
+
+  .therapist-explore-page .explore-search input {
+    height: 52px;
+    font-size: 13px;
+  }
+
+  .therapist-explore-page .specialization-filters {
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding: 3px 1px 12px;
+    margin-bottom: 30px;
+    scrollbar-width: thin;
+  }
+
+  .therapist-explore-page .specialization-filters button {
+    flex-shrink: 0;
+    font-size: 11px;
+  }
+
+  .therapist-explore-page .explore-section-heading {
+    margin-bottom: 19px;
+  }
+
+  .therapist-explore-page .explore-section-heading h2 {
+    font-size: 21px;
+  }
+
+  .therapist-explore-page .therapist-grid {
+    grid-template-columns: 1fr;
+    gap: 17px;
+  }
+
+  .therapist-explore-page .therapist-card {
+    min-height: 0;
+    padding: 23px;
+    border-radius: 17px;
+  }
+
+  .therapist-explore-page .therapist-avatar {
+    width: 72px;
+    height: 72px;
+    min-width: 72px;
+  }
+
+  .therapist-explore-page .therapist-card-top h3 {
+    font-size: 17px;
+  }
+
+  .therapist-explore-page .therapist-bio {
+    min-height: 0;
+  }
+
+  .therapist-explore-page .explore-empty {
+    padding: 40px 17px;
+  }
+}
+
+/* =====================================================
+   ACCESSIBILITY
+===================================================== */
+
+.therapist-explore-page button:focus-visible,
+.therapist-explore-page input:focus-visible {
+  outline: 3px solid rgba(82, 116, 95, 0.25);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .therapist-explore-page *,
+  .therapist-explore-page *::before,
+  .therapist-explore-page *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

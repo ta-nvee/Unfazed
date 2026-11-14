@@ -1,0 +1,21 @@
+# Environment variables
+.env
+
+
+# Dependencies
+node_modules/
+
+# Generated invoices
+invoices/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+*.log
+
+# Coverage
+coverage/
+
+# Operating system files
+.DS_Store
+Thumbs.db
