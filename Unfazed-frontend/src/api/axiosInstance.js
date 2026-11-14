@@ -2,7 +2,7 @@
 import axios from "axios";
 
 const axiosInstance = axios.create({
-  baseURL: "http://localhost:5000/api",
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
   headers: {
     "Content-Type": "application/json",
   },
@@ -16,7 +16,6 @@ axiosInstance.interceptors.request.use(
   (config) => {
     const url = config.url || "";
 
-    // Client authenticated APIs
     const isClientRequest =
       url.startsWith("/client-portal") ||
       url.startsWith("/client-auth") ||
@@ -24,15 +23,12 @@ axiosInstance.interceptors.request.use(
       url.startsWith("/notifications/client") ||
       url.startsWith("/payments/public");
 
-    // Public therapist APIs (only directory and public profiles)
     const isPublicRequest =
       url.startsWith("/scheduling/public") ||
       url === "/therapists" ||
       url === "/therapists/" ||
-      (
-        url.startsWith("/therapists/") &&
-        url !== "/therapists/profile"
-      );
+      (url.startsWith("/therapists/") &&
+        url !== "/therapists/profile");
 
     let token = null;
 
@@ -49,10 +45,8 @@ axiosInstance.interceptors.request.use(
     if (token) {
       config.headers = config.headers || {};
       config.headers.Authorization = `Bearer ${token}`;
-    } else {
-      if (config.headers) {
-        delete config.headers.Authorization;
-      }
+    } else if (config.headers) {
+      delete config.headers.Authorization;
     }
 
     return config;
@@ -75,7 +69,6 @@ axiosInstance.interceptors.response.use(
       const authType = config.authType;
       const url = config.url || "";
 
-      // Do not redirect on login/register requests
       const isClientAuthEntry =
         url.includes("/client-auth/login") ||
         url.includes("/client-auth/register");
