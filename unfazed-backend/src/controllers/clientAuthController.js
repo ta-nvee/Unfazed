@@ -226,11 +226,17 @@ const registerClientWithTherapist = async (req, res, next) => {
       });
     }
 
+    // FIND EXISTING CLIENT FOR THIS THERAPIST.
+    // This also finds clients created during public booking.
     const existingClient = await Client.findOne({
+      therapist: therapist._id,
       email: normalizedEmail,
-    }).select("+password_hash");
+    }).select("+password_hash +inviteTokenHash");
+
+    let client;
 
     if (existingClient) {
+      // An account has already been created.
       if (
         existingClient.accountCreatedAt ||
         existingClient.password_hash
@@ -241,39 +247,64 @@ const registerClientWithTherapist = async (req, res, next) => {
         });
       }
 
-      return res.status(409).json({
-        success: false,
-        message:
-          "An invitation already exists for this email. Please register using your therapist's invitation.",
+      // Do not bypass an invitation issued by the therapist.
+      if (existingClient.inviteTokenHash) {
+        return res.status(409).json({
+          success: false,
+          message:
+            "An invitation already exists for this email. Please register using your therapist's invitation.",
+        });
+      }
+
+      // REUSE THE EXISTING PUBLIC BOOKING CLIENT.
+      // Do not create another Client document.
+      // This preserves existing sessions, payments and intake details.
+      if (existingClient.status !== "active") {
+        return res.status(403).json({
+          success: false,
+          message: "This client record is inactive. Please contact your therapist.",
+        });
+      }
+
+      existingClient.name = name.trim();
+      existingClient.password_hash = await bcrypt.hash(password, 10);
+      existingClient.accountCreatedAt = new Date();
+      existingClient.status = "active";
+
+      await existingClient.save();
+
+      client = existingClient;
+    } else {
+      // NO EXISTING BOOKING OR CLIENT RECORD.
+      // Create a new client as usual.
+      const limitCheck = await checkResourceLimit(
+        therapist._id,
+        "clients"
+      );
+
+      if (!limitCheck.allowed) {
+        return res.status(403).json({
+          success: false,
+          message: limitCheck.reason,
+          limit: limitCheck.limit,
+          currentCount: limitCheck.currentCount,
+          remaining: limitCheck.remaining,
+        });
+      }
+
+      const passwordHash = await bcrypt.hash(password, 10);
+
+      client = await Client.create({
+        therapist: therapist._id,
+        name: name.trim(),
+        email: normalizedEmail,
+        password_hash: passwordHash,
+        accountCreatedAt: new Date(),
+        status: "active",
       });
     }
 
-    const limitCheck = await checkResourceLimit(
-      therapist._id,
-      "clients"
-    );
-
-    if (!limitCheck.allowed) {
-      return res.status(403).json({
-        success: false,
-        message: limitCheck.reason,
-        limit: limitCheck.limit,
-        currentCount: limitCheck.currentCount,
-        remaining: limitCheck.remaining,
-      });
-    }
-
-    const passwordHash = await bcrypt.hash(password, 10);
-
-    const client = await Client.create({
-      therapist: therapist._id,
-      name: name.trim(),
-      email: normalizedEmail,
-      password_hash: passwordHash,
-      accountCreatedAt: new Date(),
-      status: "active",
-    });
-
+    // TOKEN USES THE SAME CLIENT ID AS THE PUBLIC BOOKING.
     const token = generateClientToken(client._id);
 
     return res.status(201).json({
@@ -446,7 +477,6 @@ const updateMyProfile = async (req, res, next) => {
       });
     }
 
-    // UPDATE NAME
     if (name !== undefined) {
       if (typeof name !== "string" || !name.trim()) {
         return res.status(400).json({
@@ -465,7 +495,6 @@ const updateMyProfile = async (req, res, next) => {
       client.name = name.trim();
     }
 
-    // UPDATE EMAIL
     if (email !== undefined) {
       if (typeof email !== "string" || !email.trim()) {
         return res.status(400).json({
@@ -500,7 +529,6 @@ const updateMyProfile = async (req, res, next) => {
       client.email = normalizedEmail;
     }
 
-    // UPDATE PHONE
     if (phone !== undefined) {
       if (typeof phone !== "string") {
         return res.status(400).json({
@@ -512,12 +540,10 @@ const updateMyProfile = async (req, res, next) => {
       client.phone = phone.trim();
     }
 
-    // ENSURE INTAKE OBJECT EXISTS
     if (!client.intake) {
       client.intake = {};
     }
 
-    // UPDATE GENDER
     if (gender !== undefined) {
       if (typeof gender !== "string") {
         return res.status(400).json({
@@ -529,7 +555,6 @@ const updateMyProfile = async (req, res, next) => {
       client.intake.gender = gender.trim();
     }
 
-    // UPDATE DATE OF BIRTH
     if (dateOfBirth !== undefined) {
       if (dateOfBirth === null || dateOfBirth === "") {
         client.intake.dateOfBirth = undefined;
@@ -734,7 +759,6 @@ const selectTherapist = async (req, res, next) => {
       });
     }
 
-    // Check the new therapist's subscription client limit.
     const limitCheck = await checkResourceLimit(
       therapist._id,
       "clients"
@@ -750,8 +774,6 @@ const selectTherapist = async (req, res, next) => {
       });
     }
 
-    // Update only the client's current therapist.
-    // Historical sessions, notes and packages are not transferred.
     client.therapist = therapist._id;
 
     await client.save();
