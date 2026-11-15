@@ -51,17 +51,17 @@ function Dashboard() {
   const [profileMessage, setProfileMessage] = useState("");
 
   const [profileForm, setProfileForm] = useState({
-  name: "",
-  bio: "",
-  profileImage: "",
-  experience: 0,
-  education: [],
-  specializations: "",
-  languages: "",
-  services: [],
-  isPublic: false,
-  isAcceptingClients: false,
-});
+    name: "",
+    bio: "",
+    profileImage: "",
+    experience: 0,
+    education: [],
+    specializations: "",
+    languages: "",
+    services: [],
+    isPublic: false,
+    isAcceptingClients: false,
+  });
 
   // Notifications and real-time socket
   useEffect(() => {
@@ -86,7 +86,12 @@ function Dashboard() {
 
     fetchNotifications();
 
-    const socket = io("http://localhost:5000", {
+    // Use deployed Render URL in production.
+    // Localhost is used only when the environment variable is absent.
+    const socketUrl =
+      import.meta.env.VITE_SOCKET_URL || "http://localhost:5000";
+
+    const socket = io(socketUrl, {
       auth: { token },
       reconnection: true,
       reconnectionAttempts: 5,
@@ -183,6 +188,7 @@ function Dashboard() {
         bio: data.bio || "",
         profileImage: data.profileImage || "",
         experience: data.experience ?? 0,
+
         education: Array.isArray(data.education)
           ? data.education.map((item) => ({
               degree: item.degree || "",
@@ -190,11 +196,12 @@ function Dashboard() {
               year: item.year || "",
             }))
           : [],
+
         specializations: (data.specializations || []).join(", "),
         languages: (data.languages || []).join(", "),
         services: data.services || [],
         isPublic: data.isPublic ?? false,
-isAcceptingClients: data.isAcceptingClients ?? false,
+        isAcceptingClients: data.isAcceptingClients ?? false,
       });
     } catch (error) {
       console.error("Profile loading error:", error);
@@ -358,7 +365,9 @@ isAcceptingClients: data.isAcceptingClients ?? false,
         education: profileForm.education
           .filter(
             (item) =>
-              item.degree.trim() || item.institution.trim() || item.year
+              item.degree.trim() ||
+              item.institution.trim() ||
+              item.year
           )
           .map((item) => ({
             degree: item.degree.trim(),
@@ -382,15 +391,9 @@ isAcceptingClients: data.isAcceptingClients ?? false,
           duration: Number(service.duration),
           price: Number(service.price),
         })),
-        services: profileForm.services.map((service) => ({
-  title: service.title.trim(),
-  description: service.description || "",
-  duration: Number(service.duration),
-  price: Number(service.price),
-})),
 
-isPublic: profileForm.isPublic,
-isAcceptingClients: profileForm.isAcceptingClients,
+        isPublic: profileForm.isPublic,
+        isAcceptingClients: profileForm.isAcceptingClients,
       };
 
       if (!payload.name) {
@@ -1028,75 +1031,72 @@ isAcceptingClients: profileForm.isAcceptingClients,
                   </div>
                 </div>
 
-{/* Profile Visibility Settings */}
-<div className="profile-extra-section">
-  <div className="profile-extra-heading">
-    <div className="profile-extra-icon">
-      <Sparkles size={20} />
-    </div>
+                {/* Profile Visibility Settings */}
+                <div className="profile-extra-section">
+                  <div className="profile-extra-heading">
+                    <div className="profile-extra-icon">
+                      <Sparkles size={20} />
+                    </div>
 
-    <div>
-      <h4>Profile Visibility</h4>
-      <p>Choose how clients can discover and contact you.</p>
-    </div>
-  </div>
+                    <div>
+                      <h4>Profile Visibility</h4>
+                      <p>Choose how clients can discover and contact you.</p>
+                    </div>
+                  </div>
 
-  {/* Public Profile */}
-  <label className="flex items-start gap-3 rounded-xl border border-[#dce7dc] bg-[#f7faf6] p-4 cursor-pointer mb-3">
-    <input
-      type="checkbox"
-      checked={profileForm.isPublic}
-      onChange={(e) =>
-        setProfileForm((prev) => ({
-          ...prev,
-          isPublic: e.target.checked,
-        }))
-      }
-      className="mt-1 h-5 w-5 accent-[#52745f]"
-    />
+                  <label className="flex items-start gap-3 rounded-xl border border-[#dce7dc] bg-[#f7faf6] p-4 cursor-pointer mb-3">
+                    <input
+                      type="checkbox"
+                      checked={profileForm.isPublic}
+                      onChange={(e) =>
+                        setProfileForm((prev) => ({
+                          ...prev,
+                          isPublic: e.target.checked,
+                        }))
+                      }
+                      className="mt-1 h-5 w-5 accent-[#52745f]"
+                    />
 
-    <div>
-      <strong className="block text-[#365b43]">
-        Make my profile public
-      </strong>
+                    <div>
+                      <strong className="block text-[#365b43]">
+                        Make my profile public
+                      </strong>
 
-      <span className="text-sm text-gray-600">
-        Allow clients to discover your profile in Therapist Explore.
-      </span>
-    </div>
-  </label>
+                      <span className="text-sm text-gray-600">
+                        Allow clients to discover your profile in Therapist Explore.
+                      </span>
+                    </div>
+                  </label>
 
-  {/* Accepting Clients */}
-  <label className="flex items-start gap-3 rounded-xl border border-[#dce7dc] bg-[#f7faf6] p-4 cursor-pointer">
-    <input
-      type="checkbox"
-      checked={profileForm.isAcceptingClients}
-      onChange={(e) =>
-        setProfileForm((prev) => ({
-          ...prev,
-          isAcceptingClients: e.target.checked,
-        }))
-      }
-      className="mt-1 h-5 w-5 accent-[#52745f]"
-    />
+                  <label className="flex items-start gap-3 rounded-xl border border-[#dce7dc] bg-[#f7faf6] p-4 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={profileForm.isAcceptingClients}
+                      onChange={(e) =>
+                        setProfileForm((prev) => ({
+                          ...prev,
+                          isAcceptingClients: e.target.checked,
+                        }))
+                      }
+                      className="mt-1 h-5 w-5 accent-[#52745f]"
+                    />
 
-    <div>
-      <strong className="block text-[#365b43]">
-        I am accepting new clients
-      </strong>
+                    <div>
+                      <strong className="block text-[#365b43]">
+                        I am accepting new clients
+                      </strong>
 
-      <span className="text-sm text-gray-600">
-        Allow clients to view your booking profile and book your services.
-      </span>
-    </div>
-  </label>
+                      <span className="text-sm text-gray-600">
+                        Allow clients to view your booking profile and book your services.
+                      </span>
+                    </div>
+                  </label>
 
-  <p className="mt-3 text-sm text-gray-500">
-    Your profile appears in Therapist Explore only when both
-    settings are enabled.
-  </p>
-</div>
-
+                  <p className="mt-3 text-sm text-gray-500">
+                    Your profile appears in Therapist Explore only when both
+                    settings are enabled.
+                  </p>
+                </div>
 
                 {/* Services */}
                 <div className="services-section">

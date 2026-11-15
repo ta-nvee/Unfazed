@@ -566,13 +566,15 @@ function ClientPortal() {
     const token = localStorage.getItem("clientToken");
 
     if (!clientId || !token) return;
-
-    const socket = io("http://localhost:5000", {
-      auth: { token },
-      reconnection: true,
-      reconnectionAttempts: 5,
-      reconnectionDelay: 1000,
-    });
+const socket = io(
+  import.meta.env.VITE_SOCKET_URL || "http://localhost:5000",
+  {
+    auth: { token },
+    reconnection: true,
+    reconnectionAttempts: 5,
+    reconnectionDelay: 1000,
+  }
+);
 
     socketRef.current = socket;
 
