@@ -2,7 +2,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import MessageBubble from "./MessageBubble";
 import { Send, MessageCircle, Loader2 } from "lucide-react";
-
+const SOCKET_URL = "https://unfazed-backend-svzd.onrender.com";
 const ChatWindow = ({
   messages = [],
   onSendMessage,
