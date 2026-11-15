@@ -1137,16 +1137,18 @@ const createPublicBooking = async (req, res, next) => {
     return res.status(201).json({
       success: true,
       message: "Booking created successfully.",
-      booking: {
-        id: session._id,
-        date,
-        time,
-        duration,
-        fee,
-        sessionType,
-        therapist: therapist.name,
-        service: service.title,
-      },
+     booking: {
+  id: session._id,
+  clientId: client._id,
+  therapistId: therapist._id,
+  date,
+  time,
+  duration,
+  fee,
+  sessionType,
+  therapist: therapist.name,
+  service: service.title,
+},
     });
   } catch (error) {
     next(error);
