@@ -8,6 +8,17 @@ const Message = require("../models/Message");
 const Notification = require("../models/Notification");
 
 const { canAccess } = require("../services/entitlementService");
+const initializeChat = (httpServer) => {
+  const io = new Server(httpServer, {
+    cors: {
+     origin: [
+    "http://localhost:5173",
+    "https://unfazed-kappa.vercel.app/"
+  ],
+      methods: ["GET", "POST"]
+    }
+  });
+
 
 function initializeChat(io) {
   // ==========================================
@@ -323,4 +334,4 @@ function initializeChat(io) {
   });
 }
 
-module.exports = initializeChat;
+module.exports = initializeChat};
