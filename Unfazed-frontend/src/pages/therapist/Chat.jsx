@@ -16,36 +16,44 @@ const Chat = () => {
   const socketRef = useRef(null);
   const selectedClientRef = useRef("");
 
-  // Keep selected client available to socket listeners.
   useEffect(() => {
     selectedClientRef.current = selectedClient;
   }, [selectedClient]);
 
-  // Fetch therapist's clients.
+  // Load therapist's clients
   useEffect(() => {
+    let cancelled = false;
+
     const fetchClients = async () => {
       try {
         const response = await axiosInstance.get("/clients");
-        const clientList = response.data.clients || [];
+        if (cancelled) return;
 
+        const clientList = response.data.clients || [];
         setClients(clientList);
 
         if (clientList.length > 0) {
-          setSelectedClient(clientList[0]._id);
+          setSelectedClient(String(clientList[0]._id));
         }
       } catch (err) {
-        setError(
-          err.response?.data?.message || "Could not load clients."
-        );
+        if (!cancelled) {
+          setError(
+            err.response?.data?.message || "Could not load clients."
+          );
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
 
     fetchClients();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  // Connect Socket.IO.
+  // Connect Socket.IO
   useEffect(() => {
     const token = localStorage.getItem("token");
 
@@ -83,9 +91,9 @@ const Chat = () => {
     socket.on("receive-message", (message) => {
       const currentClientId = selectedClientRef.current;
 
-      // Only display messages belonging to the selected conversation.
       if (
-        String(message.clientId) !== String(currentClientId)
+        String(message.clientId || message.client?._id || message.client) !==
+        String(currentClientId)
       ) {
         return;
       }
@@ -109,7 +117,7 @@ const Chat = () => {
     };
   }, []);
 
-  // Join the selected client's conversation.
+  // Join selected client's conversation
   useEffect(() => {
     const socket = socketRef.current;
 
@@ -117,8 +125,12 @@ const Chat = () => {
 
     if (!socket || !selectedClient) return;
 
+    let cancelled = false;
+
     const joinRoom = () => {
       socket.emit("join-room", selectedClient, (response) => {
+        if (cancelled) return;
+
         if (response?.success) {
           setMessages(response.messages || []);
           setError("");
@@ -136,11 +148,12 @@ const Chat = () => {
     }
 
     return () => {
+      cancelled = true;
       socket.off("connect", joinRoom);
     };
   }, [selectedClient, connected]);
 
-  // Send message through Socket.IO.
+  // Send message
   const handleSendMessage = useCallback(
     (messageText) => {
       return new Promise((resolve) => {
@@ -148,6 +161,11 @@ const Chat = () => {
 
         if (!socket?.connected || !selectedClient) {
           setError("Chat is disconnected. Please try again.");
+          resolve(false);
+          return;
+        }
+
+        if (!messageText?.trim()) {
           resolve(false);
           return;
         }
@@ -212,7 +230,6 @@ const Chat = () => {
         </div>
 
         <div className="grid min-h-[600px] overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm md:grid-cols-[280px_1fr]">
-          {/* Client list */}
           <div className="border-b border-gray-100 md:border-b-0 md:border-r">
             <div className="border-b p-5">
               <h2 className="font-semibold text-gray-800">
@@ -234,9 +251,9 @@ const Chat = () => {
                   <button
                     type="button"
                     key={client._id}
-                    onClick={() => setSelectedClient(client._id)}
+                    onClick={() => setSelectedClient(String(client._id))}
                     className={`mb-2 flex w-full items-center gap-3 rounded-xl p-3 text-left transition ${
-                      selectedClient === client._id
+                      String(selectedClient) === String(client._id)
                         ? "bg-purple-50 text-purple-700"
                         : "text-gray-700 hover:bg-gray-50"
                     }`}
@@ -259,7 +276,6 @@ const Chat = () => {
             </div>
           </div>
 
-          {/* Conversation */}
           <div className="min-h-[600px] p-3 md:p-5">
             {activeClient ? (
               <ChatWindow

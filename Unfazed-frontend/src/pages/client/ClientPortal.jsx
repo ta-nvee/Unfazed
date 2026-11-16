@@ -1,4 +1,3 @@
-
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { io } from "socket.io-client";
@@ -112,6 +111,43 @@ function ClientPortal() {
 
   const socketRef = useRef(null);
   const bottomRef = useRef(null);
+  const [selectedChatTherapist, setSelectedChatTherapist] = useState("");
+
+  // THERAPISTS THE CLIENT HAS BOOKED
+  const chatTherapists = [
+    ...new Map(
+      sessions
+        .filter(
+          (session) =>
+            session.status !== "cancelled" &&
+            session.therapist
+        )
+        .map((session) => {
+          const therapistId =
+            typeof session.therapist === "object"
+              ? session.therapist?._id
+              : session.therapist;
+
+          if (!therapistId) return null;
+
+          const therapistDetails =
+            typeof session.therapist === "object"
+              ? session.therapist
+              : therapists.find(
+                  (item) =>
+                    String(item._id) === String(therapistId)
+                );
+
+          return therapistDetails
+            ? [
+                String(therapistId),
+                { ...therapistDetails, _id: therapistId },
+              ]
+            : null;
+        })
+        .filter(Boolean)
+    ).values(),
+  ];
 
   // LOAD CLIENT PORTAL DATA
 
@@ -157,12 +193,12 @@ function ClientPortal() {
         ] = results;
 
         if (sessionResult.status === "fulfilled") {
-  console.log("PORTAL SESSION RESPONSE:", sessionResult.value.data);
+          console.log("PORTAL SESSION RESPONSE:", sessionResult.value.data);
 
-  setSessions(sessionResult.value.data.sessions || []);
-} else {
-  console.error("SESSION API ERROR:", sessionResult.reason);
-}
+          setSessions(sessionResult.value.data.sessions || []);
+        } else {
+          console.error("SESSION API ERROR:", sessionResult.reason);
+        }
 
         if (notesResult.status === "fulfilled") {
           setNotes(notesResult.value.data.notes || []);
@@ -563,38 +599,73 @@ function ClientPortal() {
     }
   };
 
-  // CLIENT CHAT + NOTIFICATION CONNECTION
+  // SELECT FIRST AVAILABLE CHAT THERAPIST
+  useEffect(() => {
+    if (chatTherapists.length === 0) {
+      setSelectedChatTherapist("");
+      setMessages([]);
+      return;
+    }
 
+    const selectedExists = chatTherapists.some(
+      (item) =>
+        String(item._id) === String(selectedChatTherapist)
+    );
+
+    if (!selectedExists) {
+      setSelectedChatTherapist(
+        String(chatTherapists[0]._id)
+      );
+    }
+  }, [sessions, therapists, selectedChatTherapist]);
+
+  // CLIENT CHAT + NOTIFICATION CONNECTION
   useEffect(() => {
     const clientId = client?.id || client?._id;
     const token = localStorage.getItem("clientToken");
 
     if (!clientId || !token) return;
-const socket = io(
-  import.meta.env.VITE_SOCKET_URL || "http://localhost:5000",
-  {
-    auth: { token },
-    reconnection: true,
-    reconnectionAttempts: 5,
-    reconnectionDelay: 1000,
-  }
-);
+
+    if (!selectedChatTherapist) {
+      setMessages([]);
+      setChatConnected(false);
+      return;
+    }
+
+    const socket = io(
+      import.meta.env.VITE_SOCKET_URL || "http://localhost:5000",
+      {
+        auth: { token },
+        reconnection: true,
+        reconnectionAttempts: 5,
+        reconnectionDelay: 1000,
+      }
+    );
 
     socketRef.current = socket;
 
     const joinRoom = () => {
-      socket.emit("join-room", clientId, (response) => {
-        if (response?.success) {
-          setMessages(response.messages || []);
-          setChatError("");
-          setChatConnected(true);
-        } else {
-          setChatConnected(false);
-          setChatError(
-            response?.message || "Could not open chat room."
-          );
+      socket.emit(
+        "join-room",
+        {
+          clientId: String(clientId),
+          therapistId: String(selectedChatTherapist),
+        },
+        (response) => {
+          if (response?.success) {
+            setMessages(response.messages || []);
+            setChatError("");
+            setChatConnected(true);
+          } else {
+            setMessages([]);
+            setChatConnected(false);
+            setChatError(
+              response?.message ||
+                "Could not open this conversation."
+            );
+          }
         }
-      });
+      );
     };
 
     socket.on("connect", joinRoom);
@@ -605,34 +676,72 @@ const socket = io(
 
     socket.on("connect_error", (err) => {
       setChatConnected(false);
-      setChatError(err.message || "Chat connection failed.");
+      setChatError(
+        err.message || "Chat connection failed."
+      );
       console.error("Chat connection error:", err.message);
     });
 
     socket.on("receive-message", (message) => {
+      const messageClientId =
+        message.clientId ||
+        message.client?._id ||
+        message.client;
+
+      const messageTherapistId =
+        message.therapistId ||
+        message.therapist?._id ||
+        message.therapist;
+
+      if (
+        String(messageClientId) !== String(clientId) ||
+        String(messageTherapistId) !==
+          String(selectedChatTherapist)
+      ) {
+        return;
+      }
+
       setMessages((previous) => {
-        if (previous.some((item) => item._id === message._id)) {
+        if (
+          previous.some(
+            (item) => item._id === message._id
+          )
+        ) {
           return previous;
         }
+
         return [...previous, message];
       });
     });
 
     socket.on("new-notification", (notification) => {
       setNotifications((previous) => {
-        if (previous.some((item) => item._id === notification._id)) {
+        if (
+          previous.some(
+            (item) => item._id === notification._id
+          )
+        ) {
           return previous;
         }
+
         return [notification, ...previous];
       });
     });
 
     return () => {
       socket.disconnect();
-      socketRef.current = null;
+
+      if (socketRef.current === socket) {
+        socketRef.current = null;
+      }
+
       setChatConnected(false);
     };
-  }, [client?.id, client?._id]);
+  }, [
+    client?.id,
+    client?._id,
+    selectedChatTherapist,
+  ]);
 
   // SCROLL CHAT TO LATEST MESSAGE
 
@@ -645,7 +754,6 @@ const socket = io(
   }, [messages, activeTab]);
 
   // SEND CHAT MESSAGE
-
   const handleSendMessage = (e) => {
     e.preventDefault();
 
@@ -656,18 +764,22 @@ const socket = io(
     if (!messageText) return;
 
     if (messageText.length > 5000) {
-      setChatError("Messages cannot exceed 5000 characters.");
+      setChatError(
+        "Messages cannot exceed 5000 characters."
+      );
       return;
     }
 
-    if (!clientId) {
-      setChatError("Client ID is missing. Please log in again.");
+    if (!clientId || !selectedChatTherapist) {
+      setChatError(
+        "Please select a therapist to start chatting."
+      );
       return;
     }
 
     if (!socket?.connected || !chatConnected) {
       setChatError(
-        "Chat is not connected. Please wait or refresh the page."
+        "Chat is not connected. Please wait or refresh."
       );
       return;
     }
@@ -678,14 +790,17 @@ const socket = io(
     socket.timeout(5000).emit(
       "send-message",
       {
-        clientId,
+        clientId: String(clientId),
+        therapistId: String(selectedChatTherapist),
         message: messageText,
       },
       (err, response) => {
         setChatSending(false);
 
         if (err) {
-          setChatError("Server is not responding. Please try again.");
+          setChatError(
+            "Server is not responding. Please try again."
+          );
           return;
         }
 
@@ -693,7 +808,8 @@ const socket = io(
           setNewMessage("");
         } else {
           setChatError(
-            response?.message || "Message could not be sent."
+            response?.message ||
+              "Message could not be sent."
           );
         }
       }
@@ -2214,40 +2330,91 @@ const socket = io(
             </h3>
 
             <div className="overflow-hidden rounded-2xl border border-[#e8e6dc] bg-[#fffefa] shadow-sm">
+              {/* CHAT HEADER */}
               <div className="border-b border-[#e8e6dc] p-5">
-                <div className="flex items-center justify-between gap-3">
-                  <h4 className="font-semibold">Your Conversation</h4>
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="w-full">
+                    <h4 className="font-semibold">
+                      Your Conversations
+                    </h4>
 
-                  <span
-                    className={`text-xs font-medium ${
-                      chatConnected
-                        ? "text-green-600"
-                        : "text-orange-500"
-                    }`}
-                  >
-                    {chatConnected
-                      ? "● Connected"
-                      : "● Connecting..."}
-                  </span>
+                    {chatTherapists.length > 0 ? (
+                      <select
+                        value={selectedChatTherapist}
+                        onChange={(e) => {
+                          setSelectedChatTherapist(e.target.value);
+                          setMessages([]);
+                          setChatError("");
+                          setChatConnected(false);
+                        }}
+                        className="mt-3 w-full rounded-xl border border-[#e5e7dd] bg-[#fffefa] px-4 py-3 text-sm outline-none focus:border-[#829d84]"
+                      >
+                        {chatTherapists.map((item) => (
+                          <option
+                            key={item._id}
+                            value={item._id}
+                          >
+                            {item.name || "Therapist"}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <p className="mt-2 text-sm text-gray-500">
+                        Book a session with a therapist to start a conversation.
+                      </p>
+                    )}
+                  </div>
+
+                  {chatTherapists.length > 0 && (
+                    <span
+                      className={`shrink-0 text-xs font-medium ${
+                        chatConnected
+                          ? "text-green-600"
+                          : "text-orange-500"
+                      }`}
+                    >
+                      {chatConnected
+                        ? "● Connected"
+                        : "● Connecting..."}
+                    </span>
+                  )}
                 </div>
 
-                <p className="mt-1 text-sm text-gray-500">
-                  A calm space to connect with your therapist.
+                <p className="mt-2 text-sm text-gray-500">
+                  A calm and private space to connect with your therapist.
                 </p>
               </div>
 
+              {/* CHAT MESSAGES */}
               <div className="h-[350px] space-y-4 overflow-y-auto bg-[#f8f7f2] p-5">
-                {messages.length === 0 ? (
+                {chatTherapists.length === 0 ? (
                   <div className="flex h-full flex-col items-center justify-center text-center">
                     <MessageCircle
                       size={38}
                       className="mb-3 text-[#c1d2c0]"
                     />
+
+                    <p className="font-medium text-gray-600">
+                      No conversations yet
+                    </p>
+
+                    <p className="mt-1 text-sm text-gray-400">
+                      Book a session with a therapist to start chatting.
+                    </p>
+                  </div>
+                ) : messages.length === 0 ? (
+                  <div className="flex h-full flex-col items-center justify-center text-center">
+                    <MessageCircle
+                      size={38}
+                      className="mb-3 text-[#c1d2c0]"
+                    />
+
                     <p className="font-medium text-gray-600">
                       Start a conversation
                     </p>
+
                     <p className="mt-1 text-sm text-gray-400">
-                      Your messages will appear here.
+                      Your messages with this therapist will appear here.
                     </p>
                   </div>
                 ) : (
@@ -2279,13 +2446,12 @@ const socket = io(
                           }`}
                         >
                           {msg.sentAt
-                            ? new Date(msg.sentAt).toLocaleTimeString(
-                                [],
-                                {
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                }
-                              )
+                            ? new Date(
+                                msg.sentAt
+                              ).toLocaleTimeString([], {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })
                             : ""}
                         </p>
                       </div>
@@ -2296,12 +2462,14 @@ const socket = io(
                 <div ref={bottomRef} />
               </div>
 
+              {/* CHAT ERROR */}
               {chatError && (
                 <p className="bg-red-50 px-4 py-2 text-sm text-red-600">
                   {chatError}
                 </p>
               )}
 
+              {/* MESSAGE INPUT */}
               <form
                 onSubmit={handleSendMessage}
                 className="flex items-center gap-3 border-t border-[#e8e6dc] p-4"
@@ -2314,8 +2482,13 @@ const socket = io(
                     if (chatError) setChatError("");
                   }}
                   maxLength={5000}
-                  placeholder="Type your message..."
-                  className="min-w-0 flex-1 rounded-xl border border-[#e5e7dd] bg-[#fffefa] px-4 py-3 text-sm outline-none transition focus:border-[#829d84] focus:ring-2 focus:ring-[#e8eee6]"
+                  disabled={!selectedChatTherapist}
+                  placeholder={
+                    selectedChatTherapist
+                      ? "Type your message..."
+                      : "Select a therapist first..."
+                  }
+                  className="min-w-0 flex-1 rounded-xl border border-[#e5e7dd] bg-[#fffefa] px-4 py-3 text-sm outline-none transition focus:border-[#829d84] focus:ring-2 focus:ring-[#e8eee6] disabled:cursor-not-allowed disabled:opacity-60"
                 />
 
                 <button
@@ -2323,13 +2496,17 @@ const socket = io(
                   disabled={
                     !newMessage.trim() ||
                     chatSending ||
-                    !chatConnected
+                    !chatConnected ||
+                    !selectedChatTherapist
                   }
                   className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#52745f] text-white transition hover:bg-[#405e4b] disabled:cursor-not-allowed disabled:opacity-50"
                   aria-label="Send message"
                 >
                   {chatSending ? (
-                    <Loader2 size={19} className="animate-spin" />
+                    <Loader2
+                      size={19}
+                      className="animate-spin"
+                    />
                   ) : (
                     <Send size={19} />
                   )}
