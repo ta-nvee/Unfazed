@@ -16,19 +16,32 @@ axiosInstance.interceptors.request.use(
   (config) => {
     const url = config.url || "";
 
+    // Client booking must use the logged-in client's token.
+    const isClientBooking =
+      url.startsWith("/scheduling/public/") &&
+      url.endsWith("/book");
+
+    // Other authenticated client requests.
     const isClientRequest =
+      isClientBooking ||
       url.startsWith("/client-portal") ||
       url.startsWith("/client-auth") ||
       url.startsWith("/client-packages") ||
       url.startsWith("/notifications/client") ||
       url.startsWith("/payments/public");
 
+    // Requests that genuinely do not require authentication.
     const isPublicRequest =
-      url.startsWith("/scheduling/public") ||
+      (
+        url.startsWith("/scheduling/public/") &&
+        !isClientBooking
+      ) ||
       url === "/therapists" ||
       url === "/therapists/" ||
-      (url.startsWith("/therapists/") &&
-        url !== "/therapists/profile");
+      (
+        url.startsWith("/therapists/") &&
+        url !== "/therapists/profile"
+      );
 
     let token = null;
 
@@ -45,7 +58,8 @@ axiosInstance.interceptors.request.use(
     if (token) {
       config.headers = config.headers || {};
       config.headers.Authorization = `Bearer ${token}`;
-    } else if (config.headers) {
+    } else {
+      config.headers = config.headers || {};
       delete config.headers.Authorization;
     }
 

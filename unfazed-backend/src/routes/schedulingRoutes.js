@@ -4,7 +4,7 @@ const router = express.Router();
 
 const authMiddleware = require("../middleware/authMiddleware");
 const entitlementMiddleware = require("../middleware/entitlementMiddleware");
-
+const clientAuthMiddleware = require("../middleware/clientAuthMiddleware");
 const {
   createSession,
   getSessions,
@@ -23,7 +23,11 @@ const {
 // ==========================================
 
 router.get("/public/:slug/availability", getPublicAvailability);
-router.post("/public/:slug/book", createPublicBooking);
+router.post(
+  "/public/:slug/book",
+  clientAuthMiddleware,
+  createPublicBooking
+);
 
 // ==========================================
 // THERAPIST ROUTES

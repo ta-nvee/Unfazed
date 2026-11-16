@@ -157,8 +157,12 @@ function ClientPortal() {
         ] = results;
 
         if (sessionResult.status === "fulfilled") {
-          setSessions(sessionResult.value.data.sessions || []);
-        }
+  console.log("PORTAL SESSION RESPONSE:", sessionResult.value.data);
+
+  setSessions(sessionResult.value.data.sessions || []);
+} else {
+  console.error("SESSION API ERROR:", sessionResult.reason);
+}
 
         if (notesResult.status === "fulfilled") {
           setNotes(notesResult.value.data.notes || []);

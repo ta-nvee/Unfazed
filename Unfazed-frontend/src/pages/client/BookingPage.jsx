@@ -83,6 +83,7 @@ function BookingPage() {
         const response = await axiosInstance.get(
           `/therapists/${encodeURIComponent(slug)}`
         );
+        console.log("PUBLIC BOOKING RESPONSE:", response.data);
 
         const profile =
           response.data?.therapist ||

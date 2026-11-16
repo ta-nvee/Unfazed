@@ -298,7 +298,6 @@ const updateSession = async (req, res, next) => {
         }
       }
 
-      // Deduct package session only when transitioning to completed.
       const isBeingCompleted =
         updates.status === "completed" &&
         currentSession.status !== "completed";
@@ -825,6 +824,7 @@ const getPublicAvailability = async (req, res, next) => {
 
 // ==========================================
 // PUBLIC: CREATE BOOKING
+// Requires clientAuthMiddleware
 // ==========================================
 
 const createPublicBooking = async (req, res, next) => {
@@ -832,9 +832,6 @@ const createPublicBooking = async (req, res, next) => {
     const { slug } = req.params;
 
     const {
-      name,
-      email,
-      phone,
       date,
       time,
       serviceId,
@@ -843,19 +840,26 @@ const createPublicBooking = async (req, res, next) => {
       consentAccepted,
     } = req.body;
 
+    // Use the existing logged-in client account.
+    const client = req.client;
+
+    if (!client) {
+      return res.status(401).json({
+        success: false,
+        message: "Please log in before booking.",
+      });
+    }
+
     const timePattern = /^([01]\d|2[0-3]):([0-5]\d)$/;
 
     if (
-      !name ||
-      typeof name !== "string" ||
-      !name.trim() ||
       !isValidBookingDate(date) ||
       !timePattern.test(time || "") ||
       !serviceId
     ) {
       return res.status(400).json({
         success: false,
-        message: "Name, valid date, time and service are required.",
+        message: "Valid date, time and service are required.",
       });
     }
 
@@ -866,29 +870,25 @@ const createPublicBooking = async (req, res, next) => {
       });
     }
 
-    if (
-      email &&
-      (
-        typeof email !== "string" ||
-        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())
-      )
-    ) {
-      return res.status(400).json({
-        success: false,
-        message: "Please provide a valid email address.",
-      });
-    }
-
-    const normalizedEmail = email
-      ? email.trim().toLowerCase()
-      : "";
-
     const therapist = await Therapist.findOne({ slug });
 
     if (!therapist) {
       return res.status(404).json({
         success: false,
         message: "Therapist not found.",
+      });
+    }
+
+    // This matches the current Client schema, where each client
+    // account belongs to a particular therapist.
+    if (
+      !client.therapist ||
+      client.therapist.toString() !== therapist._id.toString()
+    ) {
+      return res.status(403).json({
+        success: false,
+        message:
+          "Your client account is not linked to this therapist.",
       });
     }
 
@@ -992,18 +992,8 @@ const createPublicBooking = async (req, res, next) => {
       });
     }
 
-    // Find existing client first.
-    let client = null;
-
-    if (normalizedEmail) {
-      client = await Client.findOne({
-        therapist: therapist._id,
-        email: normalizedEmail,
-      });
-    }
-
-    // A first-time client must submit intake and consent.
-    const existingIntake = client?.intake || {};
+    // Check whether the logged-in client has already completed intake.
+    const existingIntake = client.intake || {};
 
     const hasIntake = Boolean(
       existingIntake.presentingConcern &&
@@ -1011,11 +1001,12 @@ const createPublicBooking = async (req, res, next) => {
     );
 
     const hasConsent = Boolean(
-      client?.consentRecords?.some(
+      client.consentRecords?.some(
         (record) => record.accepted === true
       )
     );
 
+    // Require intake and consent if not already completed.
     if (!hasIntake || !hasConsent) {
       if (
         typeof presentingConcern !== "string" ||
@@ -1029,37 +1020,7 @@ const createPublicBooking = async (req, res, next) => {
             "Please complete your intake form and accept consent before booking your first session.",
         });
       }
-    }
 
-    // Enforce client subscription limit before creating a client.
-    if (!client) {
-      const clientLimit = await checkResourceLimit(
-        therapist._id,
-        "clients"
-      );
-
-      if (!clientLimit.allowed) {
-        return res.status(403).json({
-          success: false,
-          message: "This therapist has reached their client limit.",
-          upgradeRequired: true,
-          limit: clientLimit.limit,
-          currentCount: clientLimit.currentCount,
-          remaining: clientLimit.remaining,
-        });
-      }
-
-      client = await Client.create({
-        therapist: therapist._id,
-        name: name.trim(),
-        email: normalizedEmail,
-        phone: phone ? phone.trim() : "",
-      });
-    }
-
-    // Save intake and consent to the same Client document
-    // used by the client portal and therapist CRM.
-    if (!hasIntake || !hasConsent) {
       const submittedAt = new Date();
 
       const currentIntake = client.intake?.toObject?.()
@@ -1100,8 +1061,7 @@ const createPublicBooking = async (req, res, next) => {
       });
     }
 
-    // Recheck availability immediately before creating the session.
-    // This reduces the risk of two clients booking the same slot.
+    // Check the time slot again immediately before saving.
     const lastMomentOverlap = await Session.findOne({
       therapist: therapist._id,
       status: "scheduled",
@@ -1112,10 +1072,12 @@ const createPublicBooking = async (req, res, next) => {
     if (lastMomentOverlap) {
       return res.status(409).json({
         success: false,
-        message: "This time slot has just been booked. Please select another time.",
+        message:
+          "This time slot has just been booked. Please select another time.",
       });
     }
 
+    // Create session using the authenticated client's existing ID.
     const session = await Session.create({
       therapist: therapist._id,
       client: client._id,
@@ -1137,18 +1099,19 @@ const createPublicBooking = async (req, res, next) => {
     return res.status(201).json({
       success: true,
       message: "Booking created successfully.",
-     booking: {
-  id: session._id,
-  clientId: client._id,
-  therapistId: therapist._id,
-  date,
-  time,
-  duration,
-  fee,
-  sessionType,
-  therapist: therapist.name,
-  service: service.title,
-},
+      booking: {
+        id: session._id,
+        sessionId: session._id,
+        clientId: client._id,
+        therapistId: therapist._id,
+        date,
+        time,
+        duration,
+        fee,
+        sessionType,
+        therapist: therapist.name,
+        service: service.title,
+      },
     });
   } catch (error) {
     next(error);
