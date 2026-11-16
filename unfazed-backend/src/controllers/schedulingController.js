@@ -879,18 +879,7 @@ const createPublicBooking = async (req, res, next) => {
       });
     }
 
-    // This matches the current Client schema, where each client
-    // account belongs to a particular therapist.
-    if (
-      !client.therapist ||
-      client.therapist.toString() !== therapist._id.toString()
-    ) {
-      return res.status(403).json({
-        success: false,
-        message:
-          "Your client account is not linked to this therapist.",
-      });
-    }
+    
 
     const service = therapist.services.id(serviceId);
 
